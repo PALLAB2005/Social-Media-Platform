@@ -81,7 +81,7 @@ SOCIALMEDIA-APP/                      # Root folder
 └── package.json                      # Root package.json (optional)
 
 
-## Setup Instructions
+## Setup Instructions:
 
 ### Option 1: Use with Mock API (No Backend Required)
 1. Simply open `index.html` in your browser
