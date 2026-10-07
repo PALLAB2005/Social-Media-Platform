@@ -1,0 +1,349 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - LinkUp</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="brand-logo">
+      <i class="fas fa-link"></i>
+      <a href="feed.html" style="text-decoration: none; color: inherit;">
+        <span>LinkUp</span>
+      </a>
+    </div>
+    <div class="nav-links">
+      <a href="feed.html" class="nav-link">
+        <i class="fas fa-home"></i> Feed
+      </a>
+      <a href="profile.html" class="nav-link active">
+        <i class="fas fa-user"></i> Profile
+      </a>
+      <a href="#" id="notificationsLink" class="nav-link">
+        <i class="fas fa-bell"></i> Notifications
+        <span class="notification-badge">3</span>
+      </a>
+      <a href="#" id="logoutBtn" class="nav-link">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <img id="profilePic" src="https://via.placeholder.com/120" alt="Profile" class="profile-pic">
+      <div style="flex: 1;">
+        <h2 id="username">Loading...</h2>
+        <p id="userBio" style="color: var(--gray); margin-bottom: 1rem;">No bio yet</p>
+        
+        <div class="profile-stats">
+          <div>
+            <span id="postCount">0</span>
+            <p style="color: var(--gray);">Posts</p>
+          </div>
+          <div>
+            <span id="followersCount">0</span>
+            <p style="color: var(--gray);">Followers</p>
+          </div>
+          <div>
+            <span id="followingCount">0</span>
+            <p style="color: var(--gray);">Following</p>
+          </div>
+        </div>
+        
+        <div style="margin-top: 1rem;">
+          <button id="followBtn" class="btn" style="display: none;">
+            <i class="fas fa-user-plus"></i> Follow
+          </button>
+          <button id="editProfileBtn" class="btn btn-secondary" style="display: none;">
+            <i class="fas fa-edit"></i> Edit Profile
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Posts -->
+    <h3><i class="fas fa-newspaper"></i> Posts</h3>
+    <div id="userPosts">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="js/utils.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Check authentication
+    if (!auth.isAuthenticated()) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    initParticles();
+    setupEventListeners();
+    await loadProfile();
+  });
+
+  function setupEventListeners() {
+    // Follow button
+    const followBtn = document.getElementById('followBtn');
+    if (followBtn) {
+      followBtn.addEventListener('click', toggleFollow);
+    }
+
+    // Edit profile button
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    if (editProfileBtn) {
+      editProfileBtn.addEventListener('click', editProfile);
+    }
+  }
+
+  function getProfileId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("id") || auth.getCurrentUser().id;
+  }
+
+  async function loadProfile() {
+    const profileId = getProfileId();
+    const currentUserId = auth.getCurrentUser().id;
+    
+    try {
+      const user = await api.getUser(profileId);
+      
+      // Update profile info
+      document.getElementById('username').textContent = user.username || 'User';
+      document.getElementById('userBio').textContent = user.bio || 'No bio yet';
+      document.getElementById('postCount').textContent = user.postsCount || 0;
+      document.getElementById('followersCount').textContent = user.followersCount || 0;
+      document.getElementById('followingCount').textContent = user.followingCount || 0;
+      
+      // Show appropriate buttons
+      if (profileId === currentUserId) {
+        // Own profile - show edit button
+        document.getElementById('editProfileBtn').style.display = 'inline-block';
+        document.getElementById('followBtn').style.display = 'none';
+      } else {
+        // Other user's profile - show follow button
+        document.getElementById('followBtn').style.display = 'inline-block';
+        document.getElementById('editProfileBtn').style.display = 'none';
+        
+        // Check if already following
+        const followers = await api.getFollowers(profileId);
+        const isFollowing = followers.some(f => f._id === currentUserId);
+        
+        const followBtn = document.getElementById('followBtn');
+        followBtn.innerHTML = isFollowing ? 
+          '<i class="fas fa-user-minus"></i> Unfollow' : 
+          '<i class="fas fa-user-plus"></i> Follow';
+        followBtn.dataset.isFollowing = isFollowing;
+      }
+      
+      // Load user's posts
+      await loadUserPosts(profileId);
+      
+    } catch (err) {
+      console.error('Error loading profile:', err);
+      document.getElementById('username').textContent = 'Error loading profile';
+      ui.showToast('Failed to load profile', 'error');
+    }
+  }
+
+  async function loadUserPosts(userId) {
+    try {
+      // Get all posts and filter by user
+      const posts = await api.getFeed();
+      const userPosts = posts.filter(post => post.author._id === userId);
+      
+      const postsDiv = document.getElementById('userPosts');
+      
+      if (userPosts.length === 0) {
+        postsDiv.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-newspaper"></i>
+            <h3>No posts yet</h3>
+            <p>Share your first post to get started!</p>
+            <a href="feed.html" class="btn" style="margin-top: 1rem;">
+              <i class="fas fa-plus"></i> Create Post
+            </a>
+          </div>
+        `;
+        return;
+      }
+      
+      postsDiv.innerHTML = userPosts.map(post => `
+        <div class="post-card" id="post-${post._id}">
+          <div class="post-header">
+            <div class="post-author">
+              <div class="author-avatar">
+                ${ui.getUserInitials(post.author?.username)}
+              </div>
+              <div class="author-info">
+                <h4>${post.author?.username || 'Unknown'}</h4>
+                <span>${ui.formatDate(post.createdAt)}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="post-content">
+            ${post.content || ''}
+          </div>
+          
+          <div class="post-stats">
+            <span><i class="fas fa-thumbs-up"></i> ${post.likes?.length || 0} likes</span>
+            <span><i class="fas fa-comment"></i> ${post.comments || 0} comments</span>
+          </div>
+          
+          <div class="post-actions-bar">
+            <button class="post-action" onclick="toggleLike('${post._id}')">
+              <i class="fas fa-thumbs-up"></i> Like
+            </button>
+            <button class="post-action" onclick="focusCommentInput('${post._id}')">
+              <i class="fas fa-comment"></i> Comment
+            </button>
+            ${post.author?._id === auth.getCurrentUser().id ? `
+            <button class="post-action" onclick="deletePost('${post._id}')" style="color: var(--danger);">
+              <i class="fas fa-trash"></i> Delete
+            </button>` : ''}
+          </div>
+        </div>
+      `).join('');
+      
+    } catch (err) {
+      console.error('Error loading posts:', err);
+      document.getElementById('userPosts').innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-exclamation-triangle"></i>
+          <h3>Failed to load posts</h3>
+          <button onclick="loadUserPosts('${userId}')" class="btn">
+            <i class="fas fa-redo"></i> Try Again
+          </button>
+        </div>
+      `;
+    }
+  }
+
+  async function toggleFollow() {
+    const profileId = getProfileId();
+    const followBtn = document.getElementById('followBtn');
+    const isCurrentlyFollowing = followBtn.dataset.isFollowing === 'true';
+    
+    try {
+      if (isCurrentlyFollowing) {
+        await api.unfollowUser(profileId);
+        followBtn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+        followBtn.dataset.isFollowing = 'false';
+        
+        // Update followers count
+        const followersCount = document.getElementById('followersCount');
+        let currentCount = parseInt(followersCount.textContent) || 0;
+        followersCount.textContent = Math.max(0, currentCount - 1);
+        
+        ui.showToast('Unfollowed successfully', 'success');
+      } else {
+        await api.followUser(profileId);
+        followBtn.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+        followBtn.dataset.isFollowing = 'true';
+        
+        // Update followers count
+        const followersCount = document.getElementById('followersCount');
+        let currentCount = parseInt(followersCount.textContent) || 0;
+        followersCount.textContent = currentCount + 1;
+        
+        ui.showToast('Followed successfully', 'success');
+      }
+    } catch (err) {
+      console.error('Error toggling follow:', err);
+      ui.showToast('Failed to update follow status', 'error');
+    }
+  }
+
+  async function editProfile() {
+    const currentUser = auth.getCurrentUser();
+    
+    // Simple edit modal
+    const currentBio = document.getElementById('userBio').textContent;
+    const newBio = prompt('Edit your bio:', currentBio);
+    
+    if (newBio !== null) {
+      try {
+        // This would call your backend API
+        // await api.updateUser(currentUser.id, { bio: newBio });
+        
+        document.getElementById('userBio').textContent = newBio;
+        ui.showToast('Profile updated!', 'success');
+      } catch (err) {
+        console.error('Error updating profile:', err);
+        ui.showToast('Failed to update profile', 'error');
+      }
+    }
+  }
+
+  // Make functions available globally
+  window.toggleLike = async function(postId) {
+    try {
+      await api.likePost(postId);
+      ui.showToast('Post liked!', 'success');
+    } catch (err) {
+      console.error('Error liking post:', err);
+      ui.showToast('Failed to like post', 'error');
+    }
+  };
+
+  window.deletePost = async function(postId) {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    
+    try {
+      await api.deletePost(postId);
+      const postElement = document.getElementById(`post-${postId}`);
+      if (postElement) {
+        postElement.remove();
+      }
+      ui.showToast('Post deleted successfully', 'success');
+      
+      // Update post count
+      const postCount = document.getElementById('postCount');
+      let currentCount = parseInt(postCount.textContent) || 1;
+      postCount.textContent = Math.max(0, currentCount - 1);
+      
+    } catch (err) {
+      console.error('Error deleting post:', err);
+      ui.showToast('Failed to delete post', 'error');
+    }
+  };
+
+  window.focusCommentInput = function(postId) {
+    ui.showToast('Comment feature coming soon!', 'info');
+  };
+
+  // Keep your existing initParticles function
+  function initParticles() {
+    const particles = document.getElementById('particles');
+    for (let i = 0; i < 20; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.width = Math.random() * 30 + 10 + 'px';
+      particle.style.height = particle.style.width;
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 20 + 's';
+      particle.style.background = `rgba(${Math.random() * 100}, ${Math.random() * 100}, 238, ${Math.random() * 0.2 + 0.1})`;
+      particles.appendChild(particle);
+    }
+  }
+</script>
+
+</body>
+</html>
+  

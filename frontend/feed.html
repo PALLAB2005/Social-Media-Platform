@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LinkUp - Connect & Share</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Only keep unique styles not in style.css */
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Toast animations */
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      right: 30px;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 10000;
+      animation: slideIn 0.3s ease;
+      color: white;
+    }
+    
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+    .toast.info { background: var(--primary); }
+    .toast.warning { background: var(--warning); }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="brand-logo">
+      <i class="fas fa-link"></i>
+      <span>LinkUp</span>
+    </div>
+    <div class="nav-links">
+      <a href="feed.html" class="nav-link active">
+        <i class="fas fa-home"></i> Feed
+      </a>
+      <a href="profile.html" id="myProfileLink" class="nav-link">
+        <i class="fas fa-user"></i> Profile
+      </a>
+      <a href="#" id="notificationsLink" class="nav-link">
+        <i class="fas fa-bell"></i> Notifications
+        <span class="notification-badge">3</span>
+      </a>
+      <a href="#" id="friendRequestsLink" class="nav-link">
+        <i class="fas fa-user-friends"></i> Requests
+        <span class="notification-badge">2</span>
+      </a>
+      <a href="#" id="logoutBtn" class="nav-link">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <!-- User Profile Widget -->
+      <div class="widget profile-widget">
+        <div class="widget-header">
+          <h3 class="widget-title"><i class="fas fa-user-circle"></i> My Profile</h3>
+          <a href="profile.html" class="action-btn"><i class="fas fa-edit"></i></a>
+        </div>
+        <div id="userProfileInfo">
+          <div class="user-avatar" id="userInitials">JD</div>
+          <h4 id="userName">John Doe</h4>
+          <p id="userStats">15 Friends • 24 Posts</p>
+        </div>
+      </div>
+
+      <!-- Trending Topics -->
+      <div class="widget trending-widget">
+        <div class="widget-header">
+          <h3 class="widget-title"><i class="fas fa-fire"></i> Trending</h3>
+        </div>
+        <div id="trendingTopics">
+          <div class="trending-topic">
+            <span>#WebDevelopment</span>
+            <span class="topic-tag">Hot</span>
+          </div>
+          <div class="trending-topic">
+            <span>#TechNews</span>
+            <span class="topic-tag">45 posts</span>
+          </div>
+          <div class="trending-topic">
+            <span>#StartupLife</span>
+            <span class="topic-tag">28 posts</span>
+          </div>
+          <div class="trending-topic">
+            <span>#DesignInspiration</span>
+            <span class="topic-tag">New</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Online Friends -->
+      <div class="widget friends-widget">
+        <div class="widget-header">
+          <h3 class="widget-title"><i class="fas fa-users"></i> Online Now</h3>
+          <span id="onlineCount">5</span>
+        </div>
+        <div id="onlineFriends">
+          <div class="online-friend">
+            <div class="author-avatar">SD</div>
+            <span>Sarah Davis</span>
+            <div class="online-indicator"></div>
+          </div>
+          <div class="online-friend">
+            <div class="author-avatar">MJ</div>
+            <span>Mike Johnson</span>
+            <div class="online-indicator"></div>
+          </div>
+          <div class="online-friend">
+            <div class="author-avatar">EP</div>
+            <span>Emma Parker</span>
+            <div class="online-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Feed -->
+    <main class="feed">
+      <!-- Create Post -->
+      <div class="create-post-card">
+        <div class="create-post-header">
+          <div class="user-avatar" id="currentUserAvatar">JD</div>
+          <div style="flex: 1;">
+            <h4>Create Post</h4>
+            <p>Share your thoughts with the community</p>
+          </div>
+        </div>
+        <textarea id="postContent" placeholder="What's on your mind? Share something amazing..."></textarea>
+        <div class="post-actions">
+          <div class="action-buttons">
+            <button class="action-btn" onclick="addMedia('photo')">
+              <i class="fas fa-image" style="color: #4cc9f0;"></i> Photo
+            </button>
+            <button class="action-btn" onclick="addMedia('video')">
+              <i class="fas fa-video" style="color: #f72585;"></i> Video
+            </button>
+            <button class="action-btn" onclick="addMedia('poll')">
+              <i class="fas fa-chart-bar" style="color: #ffbe0b;"></i> Poll
+            </button>
+          </div>
+          <button id="createPostBtn" disabled>
+            <i class="fas fa-paper-plane"></i> Post
+          </button>
+        </div>
+      </div>
+
+      <!-- Posts Feed -->
+      <div id="feedPosts">
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- No Posts Message -->
+      <div id="noPostsMessage" class="hidden">
+        <div class="empty-state">
+          <i class="fas fa-comment-alt"></i>
+          <h3>Welcome to LinkUp! 🎉</h3>
+          <p>No posts yet. Be the first to share something amazing!</p>
+          <p>Connect with friends, join trending conversations, and build your community.</p>
+          <button onclick="document.getElementById('postContent').focus()" class="action-btn" style="margin-top: 1rem;">
+            <i class="fas fa-edit"></i> Create Your First Post
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="sidebar right-sidebar">
+      <!-- Friend Requests -->
+      <div class="widget requests-widget">
+        <div class="widget-header">
+          <h3 class="widget-title"><i class="fas fa-user-plus"></i> Friend Requests</h3>
+          <span id="requestCount">2</span>
+        </div>
+        <div id="friendRequests">
+          <div class="loading">
+            <div class="spinner" style="width: 30px; height: 30px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="widget notifications-widget">
+        <div class="widget-header">
+          <h3 class="widget-title"><i class="fas fa-bell"></i> Recent Activity</h3>
+          <button class="action-btn" onclick="markAllAsRead()">
+            <i class="fas fa-check"></i> Clear
+          </button>
+        </div>
+        <div id="notifications">
+          <div class="loading">
+            <div class="spinner" style="width: 30px; height: 30px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Events -->
+      <div class="widget events-widget">
+        <div class="widget-header">
+          <h3 class="widget-title"><i class="fas fa-calendar-alt"></i> Upcoming Events</h3>
+        </div>
+        <div id="events">
+          <div class="trending-topic">
+            <div>
+              <strong>Tech Meetup</strong>
+              <p>Tomorrow • 6:00 PM</p>
+            </div>
+            <button class="action-btn" style="padding: 0.25rem 0.75rem;">
+              <i class="fas fa-plus"></i> Join
+            </button>
+          </div>
+          <div class="trending-topic">
+            <div>
+              <strong>Web Dev Workshop</strong>
+              <p>Friday • 3:00 PM</p>
+            </div>
+            <button class="action-btn" style="padding: 0.25rem 0.75rem;">
+              <i class="fas fa-plus"></i> Join
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Floating Action Button -->
+  <button class="fab" onclick="document.getElementById('postContent').focus()">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <!-- Add mock API and utils scripts first -->
+  <script src="mock-api.js"></script>
+  <script src="js/utils.js"></script>
+
+  <script>
+    // Initialize particles background
+    function initParticles() {
+      const particles = document.getElementById('particles');
+      for (let i = 0; i < 50; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.width = Math.random() * 30 + 10 + 'px';
+        particle.style.height = particle.style.width;
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.background = `rgba(${Math.random() * 100}, ${Math.random() * 100}, 238, ${Math.random() * 0.2 + 0.1})`;
+        particles.appendChild(particle);
+      }
+    }
+
+    // Utility functions
+    function getUserInitials(username) {
+      if (!username) return 'U';
+      return username.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      
+      return date.toLocaleDateString();
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+        <span>${message}</span>
+      `;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    function showLoading(element) {
+      if (element) {
+        element.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+      }
+    }
+
+    function showElement(id) {
+      const element = document.getElementById(id);
+      if (element) element.classList.remove('hidden');
+    }
+
+    function hideElement(id) {
+      const element = document.getElementById(id);
+      if (element) element.classList.add('hidden');
+    }
+
+    // Main application
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Check authentication using localStorage directly
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+      
+      if (!token || !userId) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      // Initialize
+      initParticles();
+      setupEventListeners();
+      await loadUserProfile();
+      await loadFeed();
+      await loadFriendRequests();
+      await loadNotifications();
+      await loadOnlineUsers();
+    });
+
+    function setupEventListeners() {
+      const userId = localStorage.getItem("userId");
+      
+      // Set profile link
+      const profileLink = document.getElementById('myProfileLink');
+      if (profileLink && userId) {
+        profileLink.href = `profile.html?id=${userId}`;
+      }
+
+      // Logout
+      document.getElementById('logoutBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm("Ready to take a break? You can always come back!")) {
+          localStorage.clear();
+          window.location.href = "login.html";
+        }
+      });
+
+      // Post content validation
+      const postContent = document.getElementById('postContent');
+      const createPostBtn = document.getElementById('createPostBtn');
+      
+      if (postContent && createPostBtn) {
+        postContent.addEventListener('input', () => {
+          createPostBtn.disabled = postContent.value.trim().length === 0;
+        });
+
+        postContent.addEventListener('keydown', (e) => {
+          if (e.ctrlKey && e.key === 'Enter' && !createPostBtn.disabled) {
+            createPost();
+          }
+        });
+      }
+
+      // Create post button
+      if (createPostBtn) {
+        createPostBtn.addEventListener('click', createPost);
+      }
+
+      // Toggle sections
+      ['notificationsLink', 'friendRequestsLink'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('click', (e) => {
+            e.preventDefault();
+            showToast('This feature is coming soon!', 'info');
+          });
+        }
+      });
+    }
+
+    async function loadUserProfile() {
+      try {
+        const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("userId");
+        
+        // Try to use api utility if available
+        if (window.api && typeof window.api.getUser === 'function') {
+          const user = await window.api.getUser(userId);
+          if (user) {
+            updateProfileUI(user);
+          }
+        } else {
+          // Fallback to direct API call
+          const res = await fetch(`http://localhost:5000/api/users/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (res.ok) {
+            const user = await res.json();
+            updateProfileUI(user);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load user profile:', err);
+        showToast('Failed to load profile', 'error');
+      }
+    }
+
+    function updateProfileUI(user) {
+      const initials = getUserInitials(user.username);
+      
+      const userInitials = document.getElementById('userInitials');
+      const currentUserAvatar = document.getElementById('currentUserAvatar');
+      const userName = document.getElementById('userName');
+      const userStats = document.getElementById('userStats');
+      
+      if (userInitials) userInitials.textContent = initials;
+      if (currentUserAvatar) currentUserAvatar.textContent = initials;
+      if (userName) userName.textContent = user.username || user.name || 'User';
+      if (userStats) {
+        userStats.textContent = 
+          `${user.friendsCount || user.friends?.length || 0} Friends • ${user.postsCount || user.posts || 0} Posts`;
+      }
+    }
+
+    async function loadFeed() {
+      const feedPostsDiv = document.getElementById('feedPosts');
+      if (!feedPostsDiv) return;
+      
+      try {
+        showLoading(feedPostsDiv);
+        
+        const token = localStorage.getItem("token");
+        
+        // Try to use api utility if available
+        let posts = [];
+        if (window.api && typeof window.api.getFeed === 'function') {
+          posts = await window.api.getFeed();
+        } else {
+          // Fallback to direct API call
+          const res = await fetch(`http://localhost:5000/api/posts`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (!res.ok) throw new Error('Failed to load feed');
+          posts = await res.json();
+        }
+        
+        if (posts.length === 0) {
+          showElement('noPostsMessage');
+          feedPostsDiv.innerHTML = '';
+          return;
+        }
+        
+        hideElement('noPostsMessage');
+        
+        feedPostsDiv.innerHTML = posts.map(post => createPostHTML(post)).join('');
+        
+        // Load comments for each post
+        posts.forEach(post => loadComments(post._id));
+        
+      } catch (err) {
+        console.error('Feed loading error:', err);
+        feedPostsDiv.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-wifi-slash"></i>
+            <h3>Connection Issue</h3>
+            <p>Unable to load feed. Please check your connection.</p>
+            <button onclick="loadFeed()" class="action-btn">
+              <i class="fas fa-redo"></i> Try Again
+            </button>
+          </div>
+        `;
+        showToast('Failed to load feed', 'error');
+      }
+    }
+
+    function createPostHTML(post) {
+      const userId = localStorage.getItem("userId");
+      const isLiked = post.likes && post.likes.includes(userId);
+      const isAuthor = post.author && (post.author._id === userId || post.author.id === userId);
+      const initials = getUserInitials(post.author?.username || post.author?.name);
+      const timestamp = formatDate(post.createdAt);
+      
+      return `
+        <div class="post-card" id="post-${post._id || post.id}">
+          <div class="post-header">
+            <div class="post-author">
+              <div class="author-avatar">
+                ${initials}
+              </div>
+              <div class="author-info">
+                <h4><a href="profile.html?id=${post.author?._id || post.author?.id}">${post.author?.username || post.author?.name || 'Unknown User'}</a></h4>
+                <span>${timestamp}</span>
+              </div>
+            </div>
+            ${isAuthor ? `
+              <button class="action-btn" onclick="deletePost('${post._id || post.id}')" style="color: var(--danger);">
+                <i class="fas fa-trash"></i>
+              </button>
+            ` : ''}
+          </div>
+          
+          <div class="post-content">
+            ${post.content || ''}
+          </div>
+          
+          <div class="post-stats">
+            <span><i class="fas fa-thumbs-up"></i> ${post.likesCount || post.likes?.length || 0} likes</span>
+            <span><i class="fas fa-comment"></i> ${post.commentsCount || 0} comments</span>
+            <span><i class="fas fa-share"></i> ${post.sharesCount || 0} shares</span>
+          </div>
+          
+          <div class="post-actions-bar">
+            <button class="post-action ${isLiked ? 'liked' : ''}" 
+                    onclick="toggleLike('${post._id || post.id}')">
+              <i class="fas fa-thumbs-up"></i> ${isLiked ? 'Liked' : 'Like'}
+            </button>
+            <button class="post-action" onclick="focusCommentInput('${post._id || post.id}')">
+              <i class="fas fa-comment"></i> Comment
+            </button>
+            <button class="post-action" onclick="sharePost('${post._id || post.id}')">
+              <i class="fas fa-share"></i> Share
+            </button>
+            ${isAuthor ? `
+            <button class="post-action" onclick="deletePost('${post._id || post.id}')" style="color: var(--danger);">
+              <i class="fas fa-trash"></i> Delete
+            </button>` : ''}
+          </div>
+          
+          <div class="comments-section">
+            <div id="comments-${post._id || post.id}">
+              <div class="loading">
+                <div class="spinner" style="width: 30px; height: 30px;"></div>
+              </div>
+            </div>
+            <div class="comment-input">
+              <input type="text" id="commentInput-${post._id || post.id}" 
+                     placeholder="Write a comment..." 
+                     onkeypress="if(event.key === 'Enter') addComment('${post._id || post.id}')">
+              <button onclick="addComment('${post._id || post.id}')">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function createPost() {
+      const content = document.getElementById('postContent')?.value.trim();
+      const createPostBtn = document.getElementById('createPostBtn');
+      
+      if (!content) return;
+      
+      try {
+        const token = localStorage.getItem("token");
+        createPostBtn.disabled = true;
+        createPostBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+        
+        // Try to use api utility if available
+        if (window.api && typeof window.api.createPost === 'function') {
+          await window.api.createPost(content);
+        } else {
+          // Fallback to direct API call
+          const res = await fetch('http://localhost:5000/api/posts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ content })
+          });
+          
+          if (!res.ok) throw new Error('Failed to create post');
+        }
+        
+        // Clear textarea
+        document.getElementById('postContent').value = '';
+        createPostBtn.disabled = true;
+        createPostBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post';
+        
+        // Reload feed
+        await loadFeed();
+        
+        showToast('Post created successfully!', 'success');
+        
+      } catch (err) {
+        console.error('Error creating post:', err);
+        createPostBtn.disabled = false;
+        createPostBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post';
+        showToast('Failed to create post', 'error');
+      }
+    }
+
+    async function toggleLike(postId) {
+      try {
+        const token = localStorage.getItem("token");
+        
+        // Try to use api utility if available
+        if (window.api && typeof window.api.likePost === 'function') {
+          await window.api.likePost(postId);
+        } else {
+          // Fallback to direct API call
+          await fetch(`http://localhost:5000/api/posts/${postId}/like`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        }
+        
+        // Update UI
+        const postElement = document.getElementById(`post-${postId}`);
+        if (postElement) {
+          const likeBtn = postElement.querySelector('.post-actions-bar .post-action:first-child');
+          const likeCount = postElement.querySelector('.post-stats span:first-child');
+          
+          if (likeBtn.classList.contains('liked')) {
+            likeBtn.classList.remove('liked');
+            likeBtn.innerHTML = '<i class="fas fa-thumbs-up"></i> Like';
+            if (likeCount) {
+              const currentCount = parseInt(likeCount.textContent) || 0;
+              likeCount.textContent = `${Math.max(0, currentCount - 1)} likes`;
+            }
+          } else {
+            likeBtn.classList.add('liked');
+            likeBtn.innerHTML = '<i class="fas fa-thumbs-up"></i> Liked';
+            if (likeCount) {
+              const currentCount = parseInt(likeCount.textContent) || 0;
+              likeCount.textContent = `${currentCount + 1} likes`;
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error toggling like:', err);
+        showToast('Failed to like post', 'error');
+      }
+    }
+
+    async function addComment(postId) {
+      const commentInput = document.getElementById(`commentInput-${postId}`);
+      const comment = commentInput?.value.trim();
+      
+      if (!comment) return;
+      
+      try {
+        const token = localStorage.getItem("token");
+        
+        // Try to use api utility if available
+        if (window.api && typeof window.api.addComment === 'function') {
+          await window.api.addComment(postId, comment);
+        } else {
+          // Fallback to direct API call
+          await fetch(`http://localhost:5000/api/posts/${postId}/comment`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ content: comment })
+          });
+        }
+        
+        commentInput.value = '';
+        await loadComments(postId);
+        showToast('Comment added!', 'success');
+      } catch (err) {
+        console.error('Error adding comment:', err);
+        showToast('Failed to add comment', 'error');
+      }
+    }
+
+    async function loadComments(postId) {
+      const commentsDiv = document.getElementById(`comments-${postId}`);
+      if (!commentsDiv) return;
+      
+      try {
+        const token = localStorage.getItem("token");
+        let comments = [];
+        
+        // Try to use api utility if available
+        if (window.api && typeof window.api.getComments === 'function') {
+          comments = await window.api.getComments(postId);
+        } else {
+          // Fallback to direct API call
+          const res = await fetch(`http://localhost:5000/api/posts/${postId}/comments`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (!res.ok) throw new Error('Failed to load comments');
+          comments = await res.json();
+        }
+        
+        commentsDiv.innerHTML = comments.length > 0 ? 
+          comments.map(comment => `
+            <div class="comment">
+              <div class="author-avatar" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                ${getUserInitials(comment.author?.username || comment.author?.name)}
+              </div>
+              <div>
+                <strong><a href="profile.html?id=${comment.author?._id || comment.author?.id}">${comment.author?.username || comment.author?.name || 'Unknown'}</a></strong>
+                <p>${comment.content}</p>
+                <small>${formatDate(comment.createdAt)}</small>
+              </div>
+            </div>
+          `).join('') : 
+          '<p style="color: var(--gray); text-align: center; padding: 1rem;">No comments yet. Be the first!</p>';
+          
+      } catch (err) {
+        console.error('Error loading comments:', err);
+        commentsDiv.innerHTML = '<p style="color: var(--danger);">Failed to load comments</p>';
+      }
+    }
+
+    async function deletePost(postId) {
+      if (!confirm('Are you sure you want to delete this post?')) return;
+      
+      try {
+        const token = localStorage.getItem("token");
+        
+        // Try to use api utility if available
+        if (window.api && typeof window.api.deletePost === 'function') {
+          await window.api.deletePost(postId);
+        } else {
+          // Fallback to direct API call
+          await fetch(`http://localhost:5000/api/posts/${postId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        }
+        
+        const postElement = document.getElementById(`post-${postId}`);
+        if (postElement) {
+          postElement.remove();
+        }
+        showToast('Post deleted successfully', 'success');
+      } catch (err) {
+        console.error('Error deleting post:', err);
+        showToast('Failed to delete post', 'error');
+      }
+    }
+
+    async function loadFriendRequests() {
+      const friendRequestsDiv = document.getElementById('friendRequests');
+      if (!friendRequestsDiv) return;
+      
+      try {
+        // Try to use api utility if available
+        if (window.api && typeof window.api.getFriendRequests === 'function') {
+          const requests = await window.api.getFriendRequests();
+          
+          if (requests.length === 0) {
+            friendRequestsDiv.innerHTML = '<p style="color: var(--gray); text-align: center; padding: 1rem;">No friend requests</p>';
+            const requestCount = document.getElementById('requestCount');
+            if (requestCount) requestCount.remove();
+            return;
+          }
+          
+          friendRequestsDiv.innerHTML = requests.map(request => `
+            <div class="trending-topic">
+              <div class="author-avatar" style="width: 40px; height: 40px;">
+                ${getUserInitials(request.sender?.username || request.sender?.name)}
+              </div>
+              <div style="flex: 1;">
+                <strong>${request.sender?.username || request.sender?.name || 'User'}</strong>
+                <p>Wants to connect with you</p>
+              </div>
+              <div style="display: flex; gap: 5px;">
+                <button class="action-btn" onclick="acceptFriendRequest('${request._id || request.id}')" 
+                        style="padding: 0.25rem 0.75rem; background: var(--success); color: white;">
+                  <i class="fas fa-check"></i>
+                </button>
+                <button class="action-btn" onclick="rejectFriendRequest('${request._id || request.id}')" 
+                        style="padding: 0.25rem 0.75rem; background: var(--danger); color: white;">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+          `).join('');
+          
+          // Update request count
+          const requestCount = document.getElementById('requestCount');
+          if (requestCount) {
+            requestCount.textContent = requests.length;
+          }
+        } else {
+          // Fallback to placeholder
+          setTimeout(() => {
+            friendRequestsDiv.innerHTML = `
+              <div class="trending-topic">
+                <div class="author-avatar" style="width: 40px; height: 40px;">AJ</div>
+                <div style="flex: 1;">
+                  <strong>Alex Johnson</strong>
+                  <p>Mutual friends: 3</p>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                  <button class="action-btn" onclick="acceptFriendRequest('1')" 
+                          style="padding: 0.25rem 0.75rem; background: var(--success); color: white;">
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button class="action-btn" onclick="rejectFriendRequest('1')" 
+                          style="padding: 0.25rem 0.75rem; background: var(--danger); color: white;">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            `;
+          }, 1000);
+        }
+        
+      } catch (err) {
+        console.error('Error loading friend requests:', err);
+        friendRequestsDiv.innerHTML = '<p style="color: var(--danger); text-align: center;">Failed to load requests</p>';
+      }
+    }
+
+    async function acceptFriendRequest(requestId) {
+      try {
+        // Try to use api utility if available
+        if (window.api && typeof window.api.acceptFriendRequest === 'function') {
+          await window.api.acceptFriendRequest(requestId);
+        }
+        await loadFriendRequests();
+        showToast('Friend request accepted!', 'success');
+      } catch (err) {
+        console.error('Error accepting friend request:', err);
+        showToast('Failed to accept request', 'error');
+      }
+    }
+
+    async function rejectFriendRequest(requestId) {
+      try {
+        // Try to use api utility if available
+        if (window.api && typeof window.api.rejectFriendRequest === 'function') {
+          await window.api.rejectFriendRequest(requestId);
+        }
+        await loadFriendRequests();
+        showToast('Friend request rejected', 'warning');
+      } catch (err) {
+        console.error('Error rejecting friend request:', err);
+        showToast('Failed to reject request', 'error');
+      }
+    }
+
+    async function loadNotifications() {
+      const notificationsDiv = document.getElementById('notifications');
+      if (!notificationsDiv) return;
+      
+      // Placeholder implementation
+      setTimeout(() => {
+        notificationsDiv.innerHTML = `
+          <div class="trending-topic">
+            <i class="fas fa-thumbs-up" style="color: var(--primary);"></i>
+            <div style="flex: 1;">
+              <p><strong>Sarah Davis</strong> liked your post</p>
+              <small>10 minutes ago</small>
+            </div>
+          </div>
+          <div class="trending-topic">
+            <i class="fas fa-comment" style="color: var(--success);"></i>
+            <div style="flex: 1;">
+              <p><strong>Mike Johnson</strong> commented on your post</p>
+              <small>1 hour ago</small>
+            </div>
+          </div>
+          <div class="trending-topic">
+            <i class="fas fa-user-plus" style="color: var(--accent);"></i>
+            <div style="flex: 1;">
+              <p><strong>Emma Parker</strong> accepted your friend request</p>
+              <small>3 hours ago</small>
+            </div>
+          </div>
+        `;
+      }, 1000);
+    }
+
+    async function loadOnlineUsers() {
+      // Placeholder implementation
+      // This would typically come from a WebSocket or real-time API
+    }
+
+    function focusCommentInput(postId) {
+      const commentInput = document.getElementById(`commentInput-${postId}`);
+      if (commentInput) {
+        commentInput.focus();
+      }
+    }
+
+    function sharePost(postId) {
+      const postUrl = `${window.location.origin}/post/${postId}`;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Check out this post on LinkUp',
+          text: 'I found this interesting post on LinkUp',
+          url: postUrl
+        });
+      } else {
+        navigator.clipboard.writeText(postUrl).then(() => {
+          showToast('Post link copied to clipboard!', 'success');
+        });
+      }
+    }
+
+    function markAllAsRead() {
+      const notificationsDiv = document.getElementById('notifications');
+      if (notificationsDiv) {
+        notificationsDiv.innerHTML = 
+          '<p style="color: var(--gray); text-align: center; padding: 1rem;">All caught up!</p>';
+      }
+    }
+
+    function addMedia(type) {
+      showToast(`Adding ${type} feature coming soon!`, 'info');
+    }
+  </script>
+</body>
+</html>
