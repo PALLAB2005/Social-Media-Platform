@@ -5,7 +5,7 @@ A modern, responsive social media platform built with HTML, CSS, and JavaScript.
 
 ## Features
 
-### 🔐 Authentication
+### 🔐 Authentication:
 - User registration and login
 - JWT token-based authentication
 - Protected routes
