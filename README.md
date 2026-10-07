@@ -100,7 +100,7 @@ SOCIALMEDIA-APP/                      # Root folder
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 
-### Posts
+### Posts:
 - `GET /api/posts` - Get all posts
 - `POST /api/posts` - Create new post
 - `DELETE /api/posts/:id` - Delete post
