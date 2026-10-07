@@ -15,7 +15,7 @@ A modern, responsive social media platform built with HTML, CSS, and JavaScript.
 - Responsive layout
 - Feature highlights
 
-### 📱 Feed Page
+### 📱 Feed Page:
 - Create new posts
 - Like/unlike posts
 - Comment on posts
