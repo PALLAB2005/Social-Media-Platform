@@ -113,7 +113,7 @@ SOCIALMEDIA-APP/                      # Root folder
 - `POST /api/users/:id/follow` - Follow user
 - `POST /api/users/:id/unfollow` - Unfollow user
 
-## Browser Compatibility
+## Browser Compatibility:
 - Chrome 60+
 - Firefox 55+
 - Safari 11+
