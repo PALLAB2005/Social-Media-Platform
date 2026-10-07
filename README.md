@@ -30,7 +30,7 @@ A modern, responsive social media platform built with HTML, CSS, and JavaScript.
 - See user's posts
 - Profile statistics
 
-## File Structure
+## File Structure:
 SOCIALMEDIA-APP/                      # Root folder
 ├── backend/                          # Node.js/Express Backend
 │   ├── config/
