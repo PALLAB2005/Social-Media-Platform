@@ -94,9 +94,9 @@ SOCIALMEDIA-APP/                      # Root folder
 3. Update API endpoints in the JavaScript files if needed
 4. Open `index.html` in your browser
 
-## API Endpoints Used
+## API Endpoints Used:
 
-### Authentication
+### Authentication:
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/login` - User login
 
