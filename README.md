@@ -24,7 +24,7 @@ A modern, responsive social media platform built with HTML, CSS, and JavaScript.
 - Trending topics sidebar
 - Online friends list
 
-### 👤 Profile Page
+### 👤 Profile Page:
 - View user profiles
 - Follow/unfollow users
 - See user's posts
