@@ -10,7 +10,7 @@ A modern, responsive social media platform built with HTML, CSS, and JavaScript.
 - JWT token-based authentication
 - Protected routes
 
-### 🏠 Homepage
+### 🏠 Homepage:
 - Modern, animated design with particle background
 - Responsive layout
 - Feature highlights
