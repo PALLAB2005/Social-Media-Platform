@@ -125,7 +125,7 @@ The application is fully responsive and works on:
 - Tablets
 - Mobile phones
 
-## Technologies Used
+## Technologies Used:
 - **HTML5** - Semantic markup
 - **CSS3** - Modern styling with CSS variables
 - **JavaScript (ES6+)** - Client-side functionality
